@@ -1,5 +1,7 @@
+import Map from "@/components/Map/HqMap";
+
 const HqMapPage = () => {
-  return <div>Map Page will live here</div>;
+  return <Map />;
 };
 
 export default HqMapPage;
