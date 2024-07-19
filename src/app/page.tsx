@@ -1,4 +1,9 @@
+"use client";
+
+import { useAppContext } from "@/context";
+
 const Homepage = () => {
-  return <div>Home Page</div>;
+  const { hello } = useAppContext();
+  return <div>Home Page {hello}</div>;
 };
 export default Homepage;
