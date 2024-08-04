@@ -1,10 +1,17 @@
-import Link from "../../../node_modules/next/link";
+import Link from "next/link";
+import { Button } from "@nextui-org/react";
 
 const Nav = () => (
   <div>
-    <Link href="/">Home</Link>
-    <Link href="/headquarters">HQ</Link>
-    <Link href="/hq-map">Map</Link>
+    <Button>
+      <Link href="/">Home</Link>
+    </Button>
+    <Button>
+      <Link href="/headquarters">HQ</Link>
+    </Button>
+    <Button>
+      <Link href="/hq-map">Map</Link>
+    </Button>
   </div>
 );
 
