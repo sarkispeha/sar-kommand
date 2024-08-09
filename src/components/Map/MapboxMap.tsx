@@ -1,10 +1,12 @@
 "use client";
 
 import "mapbox-gl/dist/mapbox-gl.css";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import Map, { GeolocateControl } from "react-map-gl";
 import type { MapRef } from "react-map-gl";
 import { useQuery } from "@tanstack/react-query";
+import useFetch from "@/utils/hooks/useFetch";
+import { GeoJsonPosition } from "@/data/Geo";
 
 // for reference https://github.com/visgl/react-map-gl/tree/master?tab=readme-ov-file
 // https://www.youtube.com/watch?v=er2YwsForF0
@@ -19,21 +21,51 @@ const getIssPosition = async () => {
   return { latitude: data.latitude, longitude: data.longitude };
 };
 
+interface IssDataResponse {
+  data: {
+    latitude: number;
+    longitude: number;
+  };
+  isLoading: boolean;
+}
+
 export default function MapboxMap() {
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-  const [lat, setLat] = useState<number>(46.8);
-  const [lng, setLng] = useState<number>(-113.99);
-
   const mapRef = useRef<MapRef | null>(null);
 
   const [isMapReady, setIsMapReady] = useState<boolean>(false);
   const [isRefetching, setIsRefetching] = useState<boolean>(false);
   const [viewport, setViewport] = useState({});
+
+  const [issPosition, setIssPosition] = useState<GeoJsonPosition | null>(null);
+  const [isTrackingIss, setIsTrackingIss] = useState<boolean>(false);
+
   const query = useQuery({
     queryKey: ["issPosition"],
-    queryFn: getIssPosition,
+    queryFn: async () => {
+      const issData = await getIssPosition();
+      setIssPosition({ lat: issData.latitude, lng: issData.longitude });
+      return { latitude: issData.latitude, longitude: issData.longitude };
+    },
     refetchInterval: isRefetching ? 6000 : false,
   });
+
+  useEffect(() => {
+    if (issPosition && isRefetching && isTrackingIss) {
+      flyToLocation({
+        location: { lat: issPosition.lat, lng: issPosition.lng },
+      });
+    }
+  }, [issPosition]);
+
+  const flyToLocation = ({ location }: { location: GeoJsonPosition }) => {
+    mapRef.current?.flyTo({ center: location });
+  };
+
+  const toggleTrackIssHandler = async () => {
+    setIsRefetching(!isRefetching);
+    setIsTrackingIss(!isTrackingIss);
+  };
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition((position) => {
@@ -46,21 +78,10 @@ export default function MapboxMap() {
       setIsMapReady(true);
     });
   }, []);
-  const flyToLoloHandler = () => {
-    mapRef.current?.flyTo({
-      center: [-114.58030531385444, 46.63475261852412],
-    });
-  };
 
-  const toggleTrackIssHandler = async () => {
-    setIsRefetching(!isRefetching);
-  };
   return (
     <div>
-      Should be a map here
-      <button onClick={flyToLoloHandler} style={{ border: "1px solid #000" }}>
-        Go to Lolo Pass
-      </button>
+      <button style={{ border: "1px solid #000" }}>Go to Lolo Pass</button>
       <button
         onClick={toggleTrackIssHandler}
         style={{ border: "1px solid #000" }}
@@ -75,7 +96,7 @@ export default function MapboxMap() {
           ref={mapRef}
           mapboxAccessToken={mapboxToken}
           initialViewState={viewport}
-          style={{ width: "100vw", height: "100vh" }}
+          style={{ width: "90vw", height: "90vh" }}
           mapStyle="mapbox://styles/mapbox/streets-v9"
         >
           <GeolocateControl
