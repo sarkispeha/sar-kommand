@@ -1,25 +1,13 @@
 "use client";
 
 import "mapbox-gl/dist/mapbox-gl.css";
-import { useRef, useState, useEffect, useMemo } from "react";
-import Map, { GeolocateControl } from "react-map-gl";
+import { useRef, useState, useEffect } from "react";
+import Map, { GeolocateControl, Marker } from "react-map-gl";
 import type { MapRef } from "react-map-gl";
-import { useQuery } from "@tanstack/react-query";
-import useFetch from "@/utils/hooks/useFetch";
 import { GeoJsonPosition } from "@/data/Geo";
 
 // for reference https://github.com/visgl/react-map-gl/tree/master?tab=readme-ov-file
 // https://www.youtube.com/watch?v=er2YwsForF0
-
-const getIssPosition = async () => {
-  const response = await fetch(
-    "https://api.wheretheiss.at/v1/satellites/25544",
-    { method: "GET" }
-  );
-  const data = await response.json();
-  await console.log("GETTING ISS", data);
-  return { latitude: data.latitude, longitude: data.longitude };
-};
 
 interface IssDataResponse {
   data: {
@@ -29,28 +17,30 @@ interface IssDataResponse {
   isLoading: boolean;
 }
 
-export default function MapboxMap() {
+interface MapboxMapProps {
+  issPosition: GeoJsonPosition | null;
+  isRefetching: boolean;
+  isTrackingIss: boolean;
+}
+
+export default function MapboxMap({
+  issPosition,
+  isRefetching,
+  isTrackingIss,
+}: MapboxMapProps) {
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const mapRef = useRef<MapRef | null>(null);
 
   const [isMapReady, setIsMapReady] = useState<boolean>(false);
-  const [isRefetching, setIsRefetching] = useState<boolean>(false);
   const [viewport, setViewport] = useState({});
 
-  const [issPosition, setIssPosition] = useState<GeoJsonPosition | null>(null);
-  const [isTrackingIss, setIsTrackingIss] = useState<boolean>(false);
-
-  const query = useQuery({
-    queryKey: ["issPosition"],
-    queryFn: async () => {
-      const issData = await getIssPosition();
-      setIssPosition({ lat: issData.latitude, lng: issData.longitude });
-      return { latitude: issData.latitude, longitude: issData.longitude };
-    },
-    refetchInterval: isRefetching ? 6000 : false,
-  });
-
   useEffect(() => {
+    console.log(
+      "USE EFFECT, IS REFETCHING :",
+      isRefetching,
+      " IS TRACKING :",
+      isTrackingIss
+    );
     if (issPosition && isRefetching && isTrackingIss) {
       flyToLocation({
         location: { lat: issPosition.lat, lng: issPosition.lng },
@@ -59,12 +49,7 @@ export default function MapboxMap() {
   }, [issPosition]);
 
   const flyToLocation = ({ location }: { location: GeoJsonPosition }) => {
-    mapRef.current?.flyTo({ center: location });
-  };
-
-  const toggleTrackIssHandler = async () => {
-    setIsRefetching(!isRefetching);
-    setIsTrackingIss(!isTrackingIss);
+    mapRef.current?.flyTo({ center: location, zoom: 5 });
   };
 
   useEffect(() => {
@@ -81,16 +66,10 @@ export default function MapboxMap() {
 
   return (
     <div>
-      <button style={{ border: "1px solid #000" }}>Go to Lolo Pass</button>
-      <button
-        onClick={toggleTrackIssHandler}
-        style={{ border: "1px solid #000" }}
-      >
-        ISS location
-      </button>
-      <p>
-        {`Latitude: ${query.data?.latitude} Longitude: ${query.data?.longitude}`}
+      <p style={{ border: "1px solid #000" }}>
+        ISS location Tracking: {isRefetching ? "Enabled" : "Disabled"}
       </p>
+      <p>{`Latitude: ${issPosition?.lat} Longitude: ${issPosition?.lng}`}</p>
       {isMapReady && (
         <Map
           ref={mapRef}
@@ -103,6 +82,13 @@ export default function MapboxMap() {
             trackUserLocation={true}
             positionOptions={{ enableHighAccuracy: true }}
           />
+          {issPosition && (
+            <Marker
+              longitude={issPosition?.lng}
+              latitude={issPosition?.lat}
+              color="red"
+            />
+          )}
         </Map>
       )}
     </div>
