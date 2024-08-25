@@ -7,24 +7,29 @@ import { MemberListItem } from "@/data/Member";
 import { useQuery } from "@tanstack/react-query";
 // import useFetch from "@/utils/hooks/useFetch";
 import { useState } from "react";
+import type { Position } from "geojson";
 import { GeoJsonPosition } from "@/data/Geo";
 
 export default function HqMapPage() {
   const [issPosition, setIssPosition] = useState<GeoJsonPosition | null>(null);
   const [isTrackingIss, setIsTrackingIss] = useState<boolean>(false);
   const [isRefetching, setIsRefetching] = useState<boolean>(false);
+  const [isTrailing, setIsTrailing] = useState<boolean>(false);
+  const [trailingArray, setTrailingArray] = useState<Position[]>([]);
 
   const getIssPosition = async () => {
     const response = await fetch(
       "https://api.wheretheiss.at/v1/satellites/25544",
       { method: "GET" }
     );
-    const data = await response.json();
-    await console.log("GETTING ISS", data);
+    const data: { latitude: number; longitude: number } = await response.json();
+    // await console.log("GETTING ISS", data);
     setIssPosition({
+      // TODO, this shouldn't be called here, set in handlers
       lat: data.latitude,
       lng: data.longitude,
     });
+    setTrailingArray([...trailingArray, [data.longitude, data.latitude]]);
     return { latitude: data.latitude, longitude: data.longitude };
   };
 
@@ -48,20 +53,30 @@ export default function HqMapPage() {
       setIsTrackingIss(!isTrackingIss);
     }
   };
-  // const trailUser = async () => {
-  //   console.log("Follow User from Page", issQuery);
-  //   if (issQuery.data) {
-  //     setIssPosition({
-  //       lat: issQuery.data.latitude,
-  //       lng: issQuery.data.longitude,
-  //     });
-  //   }
-  //   // ^This needs to draw line as call is made
-  // };
+  const trailUser = async () => {
+    console.log("Trail User from Page");
+    if (issQuery.data) {
+      const {
+        data: { longitude: lng, latitude: lat },
+      } = issQuery;
+      // setIssPosition({
+      //   lat: data.latitude,
+      //   lng: data.longitude,
+      // });
+      setIsTrailing(!isTrailing);
+      setIsRefetching(!isRefetching);
+      const newPosition: Position = [lng, lat];
+
+      // console.log("NEW POSITION", newPosition);
+      // console.log("TRAILING ARRAY", trailingArray);
+      setTrailingArray([...trailingArray, newPosition]);
+    }
+    // ^This needs to draw line as call is made
+  };
 
   const memberList: MemberListItem[] = [
-    { name: "Cindy", team: "Bravo" },
-    { name: "Ellie", team: "Alpha" },
+    { name: "301", team: "Bravo" },
+    { name: "302", team: "Alpha" },
   ];
   return (
     <div>
@@ -69,11 +84,14 @@ export default function HqMapPage() {
       <ActionButtons
         selectedUserPositionHandler={locateUser}
         isTracking={isTrackingIss}
+        selectedUserTrackHandler={trailUser}
       />
       <Map
         issPosition={issPosition}
         isRefetching={isRefetching}
         isTrackingIss={isTrackingIss}
+        isTrailing={isTrailing}
+        trailingArray={trailingArray}
       />
     </div>
   );

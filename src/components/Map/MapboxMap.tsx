@@ -2,8 +2,9 @@
 
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useRef, useState, useEffect } from "react";
-import Map, { GeolocateControl, Marker } from "react-map-gl";
-import type { MapRef } from "react-map-gl";
+import Map, { GeolocateControl, Layer, Marker, Source } from "react-map-gl";
+import type { CircleLayer, LineLayer, MapRef } from "react-map-gl";
+import type { Feature, FeatureCollection, LineString, Position } from "geojson";
 import { GeoJsonPosition } from "@/data/Geo";
 
 // for reference https://github.com/visgl/react-map-gl/tree/master?tab=readme-ov-file
@@ -21,26 +22,25 @@ interface MapboxMapProps {
   issPosition: GeoJsonPosition | null;
   isRefetching: boolean;
   isTrackingIss: boolean;
+  isTrailing: boolean;
+  trailingArray: Position[];
 }
 
 export default function MapboxMap({
   issPosition,
   isRefetching,
   isTrackingIss,
+  isTrailing,
+  trailingArray,
 }: MapboxMapProps) {
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const mapRef = useRef<MapRef | null>(null);
 
   const [isMapReady, setIsMapReady] = useState<boolean>(false);
   const [viewport, setViewport] = useState({});
+  const [isTracking, setIsTracking] = useState<boolean>(false);
 
   useEffect(() => {
-    console.log(
-      "USE EFFECT, IS REFETCHING :",
-      isRefetching,
-      " IS TRACKING :",
-      isTrackingIss
-    );
     if (issPosition && isRefetching && isTrackingIss) {
       flyToLocation({
         location: { lat: issPosition.lat, lng: issPosition.lng },
@@ -49,7 +49,12 @@ export default function MapboxMap({
   }, [issPosition]);
 
   const flyToLocation = ({ location }: { location: GeoJsonPosition }) => {
-    mapRef.current?.flyTo({ center: location, zoom: 5 });
+    mapRef.current?.flyTo({
+      center: location,
+      zoom: 5,
+      essential: true,
+      speed: 0.5,
+    });
   };
 
   useEffect(() => {
@@ -64,12 +69,70 @@ export default function MapboxMap({
     });
   }, []);
 
+  // const circleJson: FeatureCollection = {
+  //   type: "FeatureCollection",
+  //   features: [
+  //     {
+  //       type: "Feature",
+  //       properties: { circle: "circle" },
+  //       geometry: {
+  //         type: "Point",
+  //         coordinates: [-114.00874412405805, 46.85408927066709],
+  //       },
+  //     },
+  //   ],
+  // };
+
+  // const circleStyle: CircleLayer = {
+  //   id: "point",
+  //   type: "circle",
+  //   paint: {
+  //     "circle-radius": 10,
+  //     "circle-color": "#007cbf",
+  //   },
+  // };
+
+  const lineStyle: LineLayer = {
+    id: "lineLayer",
+    type: "line",
+    source: "lineSource",
+    layout: {
+      "line-join": "round",
+      "line-cap": "round",
+    },
+    paint: {
+      "line-color": "red",
+      "line-width": 10,
+    },
+  };
+  const lineJson: Feature = {
+    type: "Feature",
+    properties: {},
+    geometry: {
+      type: "LineString",
+      coordinates: trailingArray,
+      // [[-114.00874412405805, 46.85408927066709],
+      // [-114.00874412405805, 47.85408927066709],
+      // [-114.00874412405805, 48.85408927066709],
+      // [-114.00874412405805, 49.85408927066709]],
+    },
+  };
+
   return (
     <div>
       <p style={{ border: "1px solid #000" }}>
         ISS location Tracking: {isRefetching ? "Enabled" : "Disabled"}
       </p>
-      <p>{`Latitude: ${issPosition?.lat} Longitude: ${issPosition?.lng}`}</p>
+      <p
+        onClick={() => {
+          console.log("START TRACK");
+          setIsTracking(!isTracking);
+        }}
+      >
+        Check the map ref
+      </p>
+      <p>DRAW LINE? {isTracking ? "Enabled" : "Disabled"}</p>
+      {/* <p>{`Latitude: ${issPosition?.lat} Longitude: ${issPosition?.lng}`}</p> */}
       {isMapReady && (
         <Map
           ref={mapRef}
@@ -89,6 +152,9 @@ export default function MapboxMap({
               color="red"
             />
           )}
+          <Source id="lineSource" type="geojson" data={lineJson}>
+            <Layer {...lineStyle} />
+          </Source>
         </Map>
       )}
     </div>
