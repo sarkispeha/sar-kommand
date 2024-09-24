@@ -9,7 +9,9 @@ const HeadquartersPage = async () => {
       HeadQuarters
       <div>
         {memberCoord.map((coord) => {
-          return <p>{`lat: ${coord.lat}, lng: ${coord.lng}`}</p>;
+          return (
+            <p key={coord.lat}>{`lat: ${coord.lat}, lng: ${coord.lng}`}</p>
+          );
         })}
       </div>
       <Button>FIND PERSON</Button>
