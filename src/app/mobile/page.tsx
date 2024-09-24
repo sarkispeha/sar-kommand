@@ -7,11 +7,34 @@ import type { Position } from "geojson";
 const MobileTrackerPage = () => {
   const [currentPosition, setCurrentPosition] = useState<Position>([]);
   const [currentTrack, setCurrentTrack] = useState<Position[]>([]);
-  const trackPositionHandler = () => {
-    navigator.geolocation.getCurrentPosition((position) => {
+  const trackPositionHandler = async () => {
+    navigator.geolocation.getCurrentPosition(async (position) => {
       console.log("TRACKING", position);
       setCurrentPosition([position.coords.longitude, position.coords.latitude]);
       setCurrentTrack([...currentTrack, currentPosition]);
+
+      try {
+        const response = await fetch("/api/mobile-position", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            data: {
+              longitude: position.coords.longitude,
+              latitude: position.coords.latitude,
+            },
+          }),
+        });
+
+        if (response.ok) {
+          console.log("Position saved successfully");
+        } else {
+          console.error("Failed to save position");
+        }
+      } catch (error) {
+        console.error("Error saving position:", error);
+      }
     });
     console.log("CURRENT TRACK", currentTrack);
   };
