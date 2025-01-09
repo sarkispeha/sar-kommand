@@ -6,13 +6,13 @@
     "dev": "dotenv -e .env.local -- next dev",
     "build": "prisma migrate deploy && next build",
     "start": "next start",
-    "start:db": "docker run --rm -p 5432:5432 -v postgres-data:/var/lib/postgresql/data -e POSTGRES_USER=sar_sark -e POSTGRES_PASSWORD=time_for_the_jeopardy postgres",
     "lint": "next lint",
     "vercel-build": "prisma generate && prisma migrate deploy && next build",
     "prisma:generate": "prisma generate",
     "prisma:migrate:local": "dotenv -e .env.local -- npx prisma migrate dev --schema=prisma/schema.prisma",
     "prisma:generate:local": "dotenv -e .env.local -- npx prisma generate --schema=prisma/schema.prisma",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "start:db": "docker run --name sar_db --rm -p 5432:5432 -v postgres-data:/var/lib/postgresql/data -e POSTGRES_USER=sar_sark -e POSTGRES_PASSWORD=${DB_PASSWORD} postgres"
   },
   "dependencies": {
     "@nextui-org/button": "^2.0.37",
