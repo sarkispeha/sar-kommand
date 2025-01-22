@@ -3,52 +3,45 @@
 import { useState } from "react";
 import { Button } from "@nextui-org/react";
 import type { Position } from "geojson";
+import * as actions from "@/actions";
 
 const MobileTrackerPage = () => {
   const [currentPosition, setCurrentPosition] = useState<Position>([]);
   const [currentTrack, setCurrentTrack] = useState<Position[]>([]);
-  const trackPositionHandler = async () => {
-    navigator.geolocation.getCurrentPosition(async (position) => {
-      console.log("TRACKING", position);
-      setCurrentPosition([position.coords.longitude, position.coords.latitude]);
-      setCurrentTrack([...currentTrack, currentPosition]);
 
-      try {
-        const response = await fetch("/api/mobile-position", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            data: {
-              longitude: position.coords.longitude,
-              latitude: position.coords.latitude,
-            },
-          }),
-        });
+  const trackAndSavePosition = async (formData: FormData) => {
+    // return a promise that resolves when we get the position
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const newPosition: Position = [
+            position.coords.longitude,
+            position.coords.latitude,
+          ];
+          setCurrentPosition(newPosition);
+          setCurrentTrack((prev) => [...prev, newPosition]);
 
-        if (response.ok) {
-          console.log("Position saved successfully");
-        } else {
-          console.error("Failed to save position");
-        }
-      } catch (error) {
-        console.error("Error saving position:", error);
-      }
+          await actions.savePosition(newPosition);
+          resolve(position);
+        },
+        (error) => reject(error)
+      );
     });
-    console.log("CURRENT TRACK", currentTrack);
   };
+
   return (
     <div>
       <h1>Track your position</h1>
-      <Button
-        className={
-          "px-6 py-3 text-lg bg-blue-500 hover:bg-blue-600 focus:ring-blue-300 text-white"
-        }
-        onClick={trackPositionHandler}
-      >
-        Track Position
-      </Button>
+      <form action={trackAndSavePosition}>
+        <Button
+          type="submit"
+          className={
+            "px-6 py-3 text-lg bg-blue-500 hover:bg-blue-600 focus:ring-blue-300 text-white"
+          }
+        >
+          Track & Save Position
+        </Button>
+      </form>
       {currentTrack.join(",\n")}
     </div>
   );
