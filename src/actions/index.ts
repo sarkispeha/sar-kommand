@@ -21,6 +21,11 @@ export async function deleteSnippet(id: number) {
   redirect("/server-action-test");
 }
 
+/**
+ * Saves a geographic coordinate to the database.
+ * @param position - A GeoJSON Position tuple containing [longitude, latitude]
+ * @returns Promise that resolves when the coordinate is saved
+ */
 export async function savePosition(position: Position) {
   console.log("save position", position);
   await db.standardCoord.create({
