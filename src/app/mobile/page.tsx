@@ -21,7 +21,7 @@ const MobileTrackerPage = () => {
           setCurrentPosition(newPosition);
           setCurrentTrack((prev) => [...prev, newPosition]);
 
-          await actions.savePosition(newPosition);
+          await actions.saveMemberPosition(newPosition);
           resolve(position);
         },
         (error) => reject(error)

@@ -26,9 +26,9 @@ export async function deleteSnippet(id: number) {
  * @param position - A GeoJSON Position tuple containing [longitude, latitude]
  * @returns Promise that resolves when the coordinate is saved
  */
-export async function savePosition(position: Position) {
+export async function saveMemberPosition(position: Position) {
   console.log("save position", position);
-  await db.standardCoord.create({
+  await db.memberCoord.create({
     data: {
       lng: position[0],
       lat: position[1],

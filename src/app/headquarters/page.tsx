@@ -1,20 +1,19 @@
-import { Button } from "@nextui-org/react";
+// import { Button } from "@nextui-org/react";
+import { CoordinatesList } from "@/components/CoordinatesList/CoordinatesList";
 import { db } from "@/db";
 
 const HeadquartersPage = async () => {
-  const snippets = await db.snippet.findMany();
-  const memberCoord = await db.memberCoord.findMany();
+  // Can still do initial server-side data fetching if needed
+  const initialCoordinates = await db.memberCoord.findMany({
+    orderBy: { id: "desc" },
+    take: 100,
+  });
+
   return (
     <div>
-      HeadQuarters
-      <div>
-        {memberCoord.map((coord) => {
-          return (
-            <p key={coord.lat}>{`lat: ${coord.lat}, lng: ${coord.lng}`}</p>
-          );
-        })}
-      </div>
-      <Button>FIND PERSON</Button>
+      <h1>HeadQuarters</h1>
+      <CoordinatesList />
+      {/* <Button>FIND PERSON</Button> */}
     </div>
   );
 };
