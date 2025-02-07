@@ -6,6 +6,7 @@ import Map, { GeolocateControl, Layer, Marker, Source } from "react-map-gl";
 import type { CircleLayer, LineLayer, MapRef } from "react-map-gl";
 import type { Feature, FeatureCollection, LineString, Position } from "geojson";
 import { GeoJsonPosition } from "@/data/Geo";
+import type { MemberCoord } from "@prisma/client";
 
 // for reference https://github.com/visgl/react-map-gl/tree/master?tab=readme-ov-file
 // https://www.youtube.com/watch?v=er2YwsForF0
@@ -39,6 +40,8 @@ export default function MapboxMap({
   const [isMapReady, setIsMapReady] = useState<boolean>(false);
   const [viewport, setViewport] = useState({});
   const [isTracking, setIsTracking] = useState<boolean>(false);
+  const [mobileMemberPosition, setMobileMemberPosition] =
+    useState<MemberCoord | null>(null);
 
   useEffect(() => {
     if (issPosition && isRefetching && isTrackingIss) {
@@ -67,6 +70,27 @@ export default function MapboxMap({
       });
       setIsMapReady(true);
     });
+  }, []);
+
+  useEffect(() => {
+    const eventSource = new EventSource("/api/coordinates");
+
+    eventSource.onmessage = (event) => {
+      const coordinates: MemberCoord[] = JSON.parse(event.data);
+      if (coordinates.length > 0) {
+        // Get the most recent coordinate
+        setMobileMemberPosition(coordinates[0]);
+      }
+    };
+
+    eventSource.onerror = (error) => {
+      console.error("EventSource failed:", error);
+      eventSource.close();
+    };
+
+    return () => {
+      eventSource.close();
+    };
   }, []);
 
   // const circleJson: FeatureCollection = {
@@ -150,6 +174,13 @@ export default function MapboxMap({
               longitude={issPosition?.lng}
               latitude={issPosition?.lat}
               color="red"
+            />
+          )}
+          {mobileMemberPosition && (
+            <Marker
+              longitude={mobileMemberPosition.lng}
+              latitude={mobileMemberPosition.lat}
+              color="blue"
             />
           )}
           <Source id="lineSource" type="geojson" data={lineJson}>

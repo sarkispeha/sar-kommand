@@ -22,7 +22,8 @@ export async function GET() {
         } catch (error) {
           console.error("Error fetching coordinates:", error);
           if (!isStreamClosed) {
-            controller.error(error);
+            controller.close();
+            isStreamClosed = true;
           }
         }
       };
@@ -31,7 +32,13 @@ export async function GET() {
       await sendCoordinates();
 
       // Poll for new data every 2 seconds
-      const interval = setInterval(sendCoordinates, 2000);
+      const interval = setInterval(async () => {
+        if (!isStreamClosed) {
+          await sendCoordinates();
+        } else {
+          clearInterval(interval);
+        }
+      }, 2000);
 
       // Cleanup on close
       return () => {
