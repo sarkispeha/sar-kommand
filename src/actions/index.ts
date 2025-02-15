@@ -24,11 +24,14 @@ export async function deleteSnippet(id: number) {
 /**
  * Saves a geographic coordinate to the database.
  * @param position - A GeoJSON Position tuple containing [longitude, latitude]
- * @param memberId - A number relating to the SAR member
+ * @param sarMemberId - A number relating to the SAR member
  * @returns Promise that resolves when the coordinate is saved
  */
-export async function saveMemberPosition(position: Position, memberId: number) {
-  console.log("save position", position, " memberId: ", memberId);
+export async function saveMemberPosition(
+  position: Position,
+  sarMemberId: number
+) {
+  console.log("save position", position, " sarMemberId: ", sarMemberId);
   await db.memberCoord.create({
     data: {
       lng: position[0],
@@ -36,10 +39,10 @@ export async function saveMemberPosition(position: Position, memberId: number) {
       member: {
         connectOrCreate: {
           where: {
-            id: memberId,
+            id: sarMemberId,
           },
           create: {
-            id: memberId,
+            id: sarMemberId,
           },
         },
       },

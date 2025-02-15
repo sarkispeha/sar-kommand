@@ -10,11 +10,11 @@ const MobileTrackerPage = () => {
   const [currentTrack, setCurrentTrack] = useState<Position[]>([]);
 
   const trackAndSavePosition = async (formData: FormData) => {
-    const memberIdStr = formData.get("memberId");
-    const memberId = parseInt(memberIdStr as string, 10);
+    const sarMemberIdStr = formData.get("sarMemberId");
+    const sarMemberId = parseInt(sarMemberIdStr as string, 10);
 
-    if (!memberIdStr || isNaN(memberId)) {
-      alert("Please enter a valid number for member ID");
+    if (!sarMemberIdStr || isNaN(sarMemberId)) {
+      alert("Please enter a valid SAR member ID");
       return;
     }
 
@@ -29,7 +29,7 @@ const MobileTrackerPage = () => {
           setCurrentPosition(newPosition);
           setCurrentTrack((prev) => [...prev, newPosition]);
 
-          await actions.saveMemberPosition(newPosition, memberId);
+          await actions.saveMemberPosition(newPosition, sarMemberId);
           resolve(position);
         },
         (error) => reject(error)
@@ -43,9 +43,9 @@ const MobileTrackerPage = () => {
       <form action={trackAndSavePosition} className="space-y-4">
         <div>
           <input
-            type="number" // TODO: might need to change to string
-            name="memberId"
-            placeholder="Enter Member ID"
+            type="number"
+            name="sarMemberId"
+            placeholder="Enter SAR Member ID"
             className="w-full px-4 py-2 border rounded-lg"
             required
           />

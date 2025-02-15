@@ -104,8 +104,8 @@ model MemberCoord {
   id       String @id @default(cuid())
   lng      Float
   lat      Float
-  memberId Int
-  member   Member @relation(fields: [memberId], references: [id])
+  sarMemberId Int
+  member   Member @relation(fields: [sarMemberId], references: [id])
 }
 
 model Member {
