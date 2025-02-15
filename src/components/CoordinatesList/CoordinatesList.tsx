@@ -28,7 +28,7 @@ export const CoordinatesList = () => {
     <div>
       {coordinates.map((coord) => (
         <p key={coord.id}>
-          {`memberCoordId: ${coord.id}, lat: ${coord.lat}, lng: ${coord.lng}`}
+          {`memberId: ${coord.memberId}, memberCoordId: ${coord.id}, lat: ${coord.lat}, lng: ${coord.lng}`}
         </p>
       ))}
     </div>

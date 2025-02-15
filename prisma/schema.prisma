@@ -101,7 +101,14 @@ model Snippet {
 }
 
 model MemberCoord {
-  id String @id @default(cuid())
-  lng Float
-  lat Float
+  id       String @id @default(cuid())
+  lng      Float
+  lat      Float
+  memberId Int
+  member   Member @relation(fields: [memberId], references: [id])
+}
+
+model Member {
+  id        Int           @id @default(autoincrement())
+  coords    MemberCoord[]
 }
