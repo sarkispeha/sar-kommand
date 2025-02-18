@@ -73,6 +73,7 @@ export default function MapboxMap({
   }, []);
 
   useEffect(() => {
+    // TODO: refactor into util hook
     const eventSource = new EventSource("/api/coordinates");
 
     eventSource.onmessage = (event) => {

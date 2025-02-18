@@ -10,6 +10,15 @@ import { useState } from "react";
 import type { Position } from "geojson";
 import { GeoJsonPosition } from "@/data/Geo";
 
+interface MemberData {
+  name: string;
+  team: string;
+  position: {
+    lng: number;
+    lat: number;
+  } | null;
+}
+
 export default function HqMapPage() {
   const [issPosition, setIssPosition] = useState<GeoJsonPosition | null>(null);
   const [isTrackingIss, setIsTrackingIss] = useState<boolean>(false);
@@ -74,13 +83,28 @@ export default function HqMapPage() {
     // ^This needs to draw line as call is made
   };
 
-  const memberList: MemberListItem[] = [
-    { name: "301", team: "Bravo" },
-    { name: "302", team: "Alpha" },
-  ];
+  // Replace the members query
+  const membersQuery = useQuery<MemberData[]>({
+    queryKey: ["sarMembers"],
+    queryFn: async () => {
+      const response = await fetch("/api/members");
+      if (!response.ok) {
+        throw new Error("Failed to fetch members");
+      }
+      return response.json();
+    },
+  });
+
+  // Transform the data to match MemberListItem interface
+  const memberListItems: MemberListItem[] =
+    membersQuery.data?.map((member) => ({
+      name: member.name,
+      team: member.team,
+    })) || [];
+
   return (
     <div>
-      <MemberList list={memberList} />
+      <MemberList list={memberListItems} />
       <ActionButtons
         selectedUserPositionHandler={locateUser}
         isTracking={isTrackingIss}
