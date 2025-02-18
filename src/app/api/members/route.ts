@@ -5,11 +5,12 @@ export async function GET() {
   try {
     const members = await db.member.findMany({
       include: {
+        // Include the related MemberCoord records
         coords: {
           orderBy: {
             id: "desc",
           },
-          take: 1,
+          take: 1, // Only get the most recent coordinate
         },
       },
     });
