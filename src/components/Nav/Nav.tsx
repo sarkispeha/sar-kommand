@@ -1,11 +1,17 @@
 import Link from "next/link";
 
+type menuItem = {
+  href: string;
+  label: string;
+};
+
 const Nav = () => {
-  const menuItems = [
+  const menuItems: menuItem[] = [
     { href: "/", label: "Home" },
     { href: "/headquarters", label: "HQ" },
     { href: "/hq-map", label: "Map" },
     { href: "/file-upload", label: "File Upload" },
+    { href: "/mobile", label: "Mobile Tracker" },
   ];
 
   return (
