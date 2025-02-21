@@ -111,4 +111,14 @@ model MemberCoord {
 model Member {
   id        Int           @id @default(autoincrement())
   coords    MemberCoord[]
+  gpxFiles  GpxFile[]
+}
+
+model GpxFile {
+  id          String   @id @default(cuid())
+  filename    String
+  fileData    Bytes    
+  uploadedAt  DateTime @default(now())
+  member      Member   @relation(fields: [memberId], references: [id])
+  memberId    Int      // Foreign key - must match the referenced field type (Int)
 }
