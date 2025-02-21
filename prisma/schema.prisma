@@ -105,7 +105,7 @@ model MemberCoord {
   lng      Float
   lat      Float
   sarMemberId Int
-  member   Member @relation(fields: [sarMemberId], references: [id])
+  member   Member @relation(fields: [sarMemberId], references: [id], onDelete: Cascade)
 }
 
 model Member {
@@ -119,6 +119,6 @@ model GpxFile {
   filename    String
   fileData    Bytes    
   uploadedAt  DateTime @default(now())
-  member      Member   @relation(fields: [memberId], references: [id])
+  member      Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
   memberId    Int      // Foreign key - must match the referenced field type (Int)
 }
