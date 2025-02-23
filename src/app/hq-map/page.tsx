@@ -9,15 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import type { Position } from "geojson";
 import { GeoJsonPosition } from "@/data/Geo";
-
-interface MemberData {
-  name: string;
-  team: string;
-  position: {
-    lng: number;
-    lat: number;
-  } | null;
-}
+import { MemberData } from "@/data/Member";
 
 export default function HqMapPage() {
   const [issPosition, setIssPosition] = useState<GeoJsonPosition | null>(null);
@@ -25,6 +17,7 @@ export default function HqMapPage() {
   const [isRefetching, setIsRefetching] = useState<boolean>(false);
   const [isTrailing, setIsTrailing] = useState<boolean>(false);
   const [trailingArray, setTrailingArray] = useState<Position[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<MemberData[]>([]);
 
   const getIssPosition = async () => {
     const response = await fetch(
@@ -83,7 +76,7 @@ export default function HqMapPage() {
     // ^This needs to draw line as call is made
   };
 
-  // Replace the members query
+  // TODO; abstract out the members query with hook
   const membersQuery = useQuery<MemberData[]>({
     queryKey: ["sarMembers"],
     queryFn: async () => {
@@ -100,11 +93,36 @@ export default function HqMapPage() {
     membersQuery.data?.map((member) => ({
       name: member.name,
       team: member.team,
+      sarMemberId: member.sarMemberId,
     })) || [];
+  const handleCheckboxClick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const targetValue = parseInt(e.target.value);
+    const isChecked = e.target.checked;
+
+    if (isChecked) {
+      // Add member if checked
+      const checkedMemberData = membersQuery.data?.find(
+        (member) => member.sarMemberId === targetValue
+      );
+      if (checkedMemberData) {
+        setSelectedMembers((prev) => [...prev, checkedMemberData]);
+      }
+    } else {
+      // Remove member if unchecked
+      setSelectedMembers((prevSelectedMembers) =>
+        prevSelectedMembers.filter(
+          (member) => member.sarMemberId !== targetValue
+        )
+      );
+    }
+  };
 
   return (
     <div>
-      <MemberList list={memberListItems} />
+      <MemberList
+        onChangeHandler={handleCheckboxClick}
+        list={memberListItems}
+      />
       <ActionButtons
         selectedUserPositionHandler={locateUser}
         isTracking={isTrackingIss}
@@ -116,6 +134,7 @@ export default function HqMapPage() {
         isTrackingIss={isTrackingIss}
         isTrailing={isTrailing}
         trailingArray={trailingArray}
+        selectedMembers={selectedMembers}
       />
     </div>
   );

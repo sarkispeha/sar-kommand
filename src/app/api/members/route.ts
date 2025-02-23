@@ -16,8 +16,9 @@ export async function GET() {
     });
 
     const formattedMembers = members.map((member) => ({
-      name: `Member ${member.id}`,
+      name: `${member.id}`,
       team: "Team A",
+      sarMemberId: member.id,
       position: member.coords[0]
         ? {
             lng: member.coords[0].lng,

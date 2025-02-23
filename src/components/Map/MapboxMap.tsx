@@ -7,6 +7,7 @@ import type { CircleLayer, LineLayer, MapRef } from "react-map-gl";
 import type { Feature, FeatureCollection, LineString, Position } from "geojson";
 import { GeoJsonPosition } from "@/data/Geo";
 import type { MemberCoord } from "@prisma/client";
+import { MemberData } from "@/data/Member";
 
 // for reference https://github.com/visgl/react-map-gl/tree/master?tab=readme-ov-file
 // https://www.youtube.com/watch?v=er2YwsForF0
@@ -25,6 +26,7 @@ interface MapboxMapProps {
   isTrackingIss: boolean;
   isTrailing: boolean;
   trailingArray: Position[];
+  selectedMembers: MemberData[];
 }
 
 export default function MapboxMap({
@@ -33,6 +35,7 @@ export default function MapboxMap({
   isTrackingIss,
   isTrailing,
   trailingArray,
+  selectedMembers,
 }: MapboxMapProps) {
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const mapRef = useRef<MapRef | null>(null);
@@ -177,13 +180,22 @@ export default function MapboxMap({
               color="red"
             />
           )}
-          {mobileMemberPosition && (
+          {/* {mobileMemberPosition && (
             <Marker
               longitude={mobileMemberPosition.lng}
               latitude={mobileMemberPosition.lat}
               color="blue"
             />
-          )}
+          )} */}
+          {selectedMembers &&
+            selectedMembers.map((selectedMember) => (
+              <Marker
+                longitude={selectedMember.position!.lng}
+                latitude={selectedMember.position!.lat}
+                color="blue"
+                // children={<p>{selectedMember.name}</p>}
+              />
+            ))}
           <Source id="lineSource" type="geojson" data={lineJson}>
             <Layer {...lineStyle} />
           </Source>
