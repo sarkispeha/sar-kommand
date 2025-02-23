@@ -188,14 +188,25 @@ export default function MapboxMap({
             />
           )} */}
           {selectedMembers &&
-            selectedMembers.map((selectedMember) => (
-              <Marker
-                longitude={selectedMember.position!.lng}
-                latitude={selectedMember.position!.lat}
-                color="blue"
-                // children={<p>{selectedMember.name}</p>}
-              />
-            ))}
+            selectedMembers.map((selectedMember) =>
+              selectedMember.position ? (
+                <Marker
+                  key={selectedMember.sarMemberId}
+                  longitude={selectedMember.position!.lng}
+                  latitude={selectedMember.position!.lat}
+                  // color="blue"
+                  anchor="bottom"
+                >
+                  <div className="flex flex-col items-center">
+                    <p className="bg-white bg-opacity-70 px-2 py-1 rounded shadow mb-1 text-sm">
+                      {selectedMember.name}
+                    </p>
+                    {/* TODO: make better icon than this half-assed marker icon */}
+                    <div className="w-5 h-5 rounded-full bg-blue-500" />{" "}
+                  </div>
+                </Marker>
+              ) : null
+            )}
           <Source id="lineSource" type="geojson" data={lineJson}>
             <Layer {...lineStyle} />
           </Source>
