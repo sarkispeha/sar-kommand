@@ -28,6 +28,7 @@ interface MapboxMapProps {
   isTrailing: boolean;
   trailingArray: Position[];
   selectedMembers: MemberData[];
+  mobileMemberPosition: MemberCoord | null;
 }
 
 export default function MapboxMap({
@@ -37,6 +38,7 @@ export default function MapboxMap({
   isTrailing,
   trailingArray,
   selectedMembers,
+  mobileMemberPosition,
 }: MapboxMapProps) {
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const mapRef = useRef<MapRef | null>(null);
@@ -44,8 +46,6 @@ export default function MapboxMap({
   const [isMapReady, setIsMapReady] = useState<boolean>(false);
   const [viewport, setViewport] = useState({});
   const [isTracking, setIsTracking] = useState<boolean>(false);
-  const [mobileMemberPosition, setMobileMemberPosition] =
-    useState<MemberCoord | null>(null);
 
   useEffect(() => {
     if (issPosition && isRefetching && isTrackingIss) {
@@ -74,28 +74,6 @@ export default function MapboxMap({
       });
       setIsMapReady(true);
     });
-  }, []);
-
-  useEffect(() => {
-    // TODO: refactor into util hook
-    const eventSource = new EventSource("/api/coordinates");
-
-    eventSource.onmessage = (event) => {
-      const coordinates: MemberCoord[] = JSON.parse(event.data);
-      if (coordinates.length > 0) {
-        // Get the most recent coordinate
-        setMobileMemberPosition(coordinates[0]);
-      }
-    };
-
-    eventSource.onerror = (error) => {
-      console.error("EventSource failed:", error);
-      eventSource.close();
-    };
-
-    return () => {
-      eventSource.close();
-    };
   }, []);
 
   // const circleJson: FeatureCollection = {
@@ -191,7 +169,10 @@ export default function MapboxMap({
           {selectedMembers &&
             selectedMembers.map((selectedMember) =>
               selectedMember.position ? (
-                <MemberMarker selectedMember={selectedMember} />
+                <MemberMarker
+                  selectedMember={selectedMember}
+                  key={selectedMember.sarMemberId}
+                />
               ) : null
             )}
           <Source id="lineSource" type="geojson" data={lineJson}>

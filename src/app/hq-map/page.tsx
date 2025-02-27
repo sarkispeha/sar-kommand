@@ -6,10 +6,13 @@ import MemberList from "@/components/Map/MemberList";
 import { MemberListItem } from "@/data/Member";
 import { useQuery } from "@tanstack/react-query";
 // import useFetch from "@/utils/hooks/useFetch";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Position } from "geojson";
 import { GeoJsonPosition } from "@/data/Geo";
 import { MemberData } from "@/data/Member";
+
+import { MemberCoord } from "@prisma/client";
+import { useMemberCoordinates } from "@/utils/hooks/useMemberCoordinates";
 
 export default function HqMapPage() {
   const [issPosition, setIssPosition] = useState<GeoJsonPosition | null>(null);
@@ -18,6 +21,8 @@ export default function HqMapPage() {
   const [isTrailing, setIsTrailing] = useState<boolean>(false);
   const [trailingArray, setTrailingArray] = useState<Position[]>([]);
   const [selectedMembers, setSelectedMembers] = useState<MemberData[]>([]);
+
+  const mobileMemberPosition = useMemberCoordinates();
 
   const getIssPosition = async () => {
     const response = await fetch(
@@ -135,6 +140,7 @@ export default function HqMapPage() {
         isTrailing={isTrailing}
         trailingArray={trailingArray}
         selectedMembers={selectedMembers}
+        mobileMemberPosition={mobileMemberPosition}
       />
     </div>
   );
