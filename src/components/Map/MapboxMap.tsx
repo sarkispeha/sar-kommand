@@ -8,6 +8,7 @@ import type { Feature, FeatureCollection, LineString, Position } from "geojson";
 import { GeoJsonPosition } from "@/data/Geo";
 import type { MemberCoord } from "@prisma/client";
 import { MemberData } from "@/data/Member";
+import { MemberMarker } from "./MemberMarker";
 
 // for reference https://github.com/visgl/react-map-gl/tree/master?tab=readme-ov-file
 // https://www.youtube.com/watch?v=er2YwsForF0
@@ -190,21 +191,7 @@ export default function MapboxMap({
           {selectedMembers &&
             selectedMembers.map((selectedMember) =>
               selectedMember.position ? (
-                <Marker
-                  key={selectedMember.sarMemberId}
-                  longitude={selectedMember.position!.lng}
-                  latitude={selectedMember.position!.lat}
-                  // color="blue"
-                  anchor="bottom"
-                >
-                  <div className="flex flex-col items-center">
-                    <p className="bg-white bg-opacity-70 px-2 py-1 rounded shadow mb-1 text-sm">
-                      {selectedMember.name}
-                    </p>
-                    {/* TODO: make better icon than this half-assed marker icon */}
-                    <div className="w-5 h-5 rounded-full bg-blue-500" />{" "}
-                  </div>
-                </Marker>
+                <MemberMarker selectedMember={selectedMember} />
               ) : null
             )}
           <Source id="lineSource" type="geojson" data={lineJson}>
