@@ -105,6 +105,7 @@ model MemberCoord {
   lng      Float
   lat      Float
   sarMemberId Int
+  timestamp  DateTime @default(now())
   member   Member @relation(fields: [sarMemberId], references: [id], onDelete: Cascade)
 }
 
