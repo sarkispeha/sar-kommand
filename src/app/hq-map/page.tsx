@@ -6,12 +6,12 @@ import { MemberListItem } from "@/data/Member";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { MemberData } from "@/data/Member";
-import { useMemberCoordinates } from "@/utils/hooks/useMemberCoordinates";
+import { useUpdateMemberCoordinates } from "@/utils/hooks/useUpdateMemberCoordinates";
 
 export default function HqMapPage() {
   const [selectedMembers, setSelectedMembers] = useState<MemberData[]>([]);
 
-  const mobileMemberPosition = useMemberCoordinates();
+  const mobileMemberPosition = useUpdateMemberCoordinates();
 
   // TODO; abstract out the members query with hook
   const membersQuery = useQuery<MemberData[]>({

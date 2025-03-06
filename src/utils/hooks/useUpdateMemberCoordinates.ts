@@ -9,7 +9,7 @@ import { GeoJsonPosition } from "@/data/Geo";
  * @param endpoint The SSE endpoint URL (defaults to "/api/coordinates")
  * @returns Object with member IDs to their latest coordinates
  */
-export function useMemberCoordinates(
+export function useUpdateMemberCoordinates(
   selectedMemberIds: number[] = [],
   endpoint = "/api/coordinates"
 ): Record<number, GeoJsonPosition> {
