@@ -5,14 +5,11 @@ import { useRef, useState, useEffect } from "react";
 import Map, { GeolocateControl } from "react-map-gl";
 import type { MapRef } from "react-map-gl";
 import { GeoJsonPosition } from "@/data/Geo";
-import type { MemberCoord } from "@prisma/client";
 import { MemberData } from "@/data/Member";
 import { MemberMarker } from "./MemberMarker";
 
 interface MapboxMapProps {
-  isTrailing: boolean;
   selectedMembers: MemberData[];
-  mobileMemberPosition: MemberCoord | null;
 }
 
 export default function MapboxMap({ selectedMembers }: MapboxMapProps) {
