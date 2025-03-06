@@ -1,66 +1,41 @@
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { MemberCoord } from "@prisma/client";
 import { GeoJsonPosition } from "@/data/Geo";
 
 /**
- * Gets member coordinates via Server-Sent Events
+ * Gets member coordinates via React Query
  * Tracks multiple members and their latest coordinates
  * @param selectedMemberIds Array of member IDs to track
- * @param endpoint The SSE endpoint URL (defaults to "/api/coordinates")
  * @returns Object with member IDs to their latest coordinates
  */
 export function useUpdateMemberCoordinates(
-  selectedMemberIds: number[] = [],
-  endpoint = "/api/coordinates"
+  selectedMemberIds: number[] = []
 ): Record<number, GeoJsonPosition> {
-  const [memberPositions, setMemberPositions] = useState<
-    Record<number, GeoJsonPosition>
-  >({});
-
-  useEffect(() => {
-    if (selectedMemberIds.length === 0) return;
-
-    const eventSource = new EventSource(endpoint);
-
-    eventSource.onmessage = (event) => {
-      try {
-        const coordinates: MemberCoord[] = JSON.parse(event.data);
-
-        // Filter coordinates for selected members only
-        const relevantCoordinates = coordinates.filter((coord) =>
-          selectedMemberIds.includes(coord.sarMemberId)
-        );
-
-        if (relevantCoordinates.length > 0) {
-          // Update coordinates for each member, converting to GeoJsonPosition format
-          setMemberPositions((prev) => {
-            const updated = { ...prev };
-
-            relevantCoordinates.forEach((coord) => {
-              updated[coord.sarMemberId] = {
-                lat: coord.lat,
-                lng: coord.lng,
-              };
-            });
-
-            return updated;
-          });
-        }
-      } catch (error) {
-        console.error("Error parsing coordinate data:", error);
+  const { data: coordinates = [] } = useQuery<MemberCoord[]>({
+    queryKey: ["coordinates", selectedMemberIds],
+    queryFn: async () => {
+      const response = await fetch("/api/coordinates");
+      if (!response.ok) {
+        throw new Error("Failed to fetch coordinates");
       }
-    };
+      return response.json();
+    },
+    refetchInterval: 2000,
+    enabled: selectedMemberIds.length > 0,
+    select: (data) =>
+      data.filter((coord) => selectedMemberIds.includes(coord.sarMemberId)),
+  });
 
-    eventSource.onerror = (error) => {
-      console.error("EventSource connection failed:", error);
-      eventSource.close();
-    };
+  // Convert the filtered coordinates array to the format:
+  // { [sarMemberId]: { lat, lng } }
+  const memberPositions: Record<number, GeoJsonPosition> = {};
 
-    // Clean up the connection when the component unmounts or selectedMemberIds changes
-    return () => {
-      eventSource.close();
+  coordinates.forEach((coord) => {
+    memberPositions[coord.sarMemberId] = {
+      lat: coord.lat,
+      lng: coord.lng,
     };
-  }, [endpoint, selectedMemberIds]);
+  });
 
   return memberPositions;
 }
