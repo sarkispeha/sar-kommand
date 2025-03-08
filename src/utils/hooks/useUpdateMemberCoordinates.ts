@@ -3,31 +3,33 @@ import type { MemberCoord } from "@prisma/client";
 import { GeoJsonPosition } from "@/data/Geo";
 
 /**
- * Gets member coordinates via React Query
- * Tracks multiple members and their latest coordinates
- * @param selectedMemberIds Array of member IDs to track
+ * Gets the latest coordinates for selected members
+ * @param selectedSarMemberIds Array of member IDs to track
  * @returns Object with member IDs to their latest coordinates
  */
 export function useUpdateMemberCoordinates(
-  selectedMemberIds: number[] = []
+  selectedSarMemberIds: number[] = []
 ): Record<number, GeoJsonPosition> {
+  const memberIdsParam =
+    selectedSarMemberIds.length > 0
+      ? `?memberIds=${selectedSarMemberIds.join(",")}`
+      : "";
+
   const { data: coordinates = [] } = useQuery<MemberCoord[]>({
-    queryKey: ["coordinates", selectedMemberIds],
+    queryKey: ["coordinates", selectedSarMemberIds],
     queryFn: async () => {
-      const response = await fetch("/api/coordinates");
+      //TODO : this might not be the most NEXT.js way to do this, there might be a better way to use query params
+      const response = await fetch(`/api/coordinates${memberIdsParam}`);
       if (!response.ok) {
         throw new Error("Failed to fetch coordinates");
       }
       return response.json();
     },
-    refetchInterval: 2000,
-    enabled: selectedMemberIds.length > 0,
-    select: (data) =>
-      data.filter((coord) => selectedMemberIds.includes(coord.sarMemberId)),
+    refetchInterval: 5000,
+    enabled: selectedSarMemberIds.length > 0,
   });
 
-  // Convert the filtered coordinates array to the format:
-  // { [sarMemberId]: { lat, lng } }
+  // Convert array of coordinates to a map of sarMemberId -> position
   const memberPositions: Record<number, GeoJsonPosition> = {};
 
   coordinates.forEach((coord) => {

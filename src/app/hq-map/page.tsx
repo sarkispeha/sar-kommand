@@ -4,14 +4,35 @@ import Map from "@/components/Map/MapboxMap";
 import MemberList from "@/components/Map/MemberList";
 import { MemberListItem } from "@/data/Member";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { MemberData } from "@/data/Member";
 import { useUpdateMemberCoordinates } from "@/utils/hooks/useUpdateMemberCoordinates";
 
 export default function HqMapPage() {
   const [selectedMembers, setSelectedMembers] = useState<MemberData[]>([]);
 
-  const mobileMemberPosition = useUpdateMemberCoordinates();
+  const selectedMemberIds = useMemo(
+    () => selectedMembers.map((member) => member.sarMemberId),
+    [selectedMembers]
+  );
+
+  // Get coordinate updates every 5 seconds
+  const memberPositions = useUpdateMemberCoordinates(selectedMemberIds);
+
+  // Combine selected members with their latest positions
+  const membersWithUpdatedPositions = useMemo(() => {
+    return selectedMembers.map((member) => {
+      // If we have updated coordinates for this member, use them
+      if (memberPositions[member.sarMemberId]) {
+        return {
+          ...member,
+          position: memberPositions[member.sarMemberId],
+        };
+      }
+      // Otherwise return the member as is
+      return member;
+    });
+  }, [selectedMembers, memberPositions]);
 
   // TODO; abstract out the members query with hook
   const membersQuery = useQuery<MemberData[]>({
@@ -60,7 +81,7 @@ export default function HqMapPage() {
         onChangeHandler={handleCheckboxClick}
         list={memberListItems}
       />
-      <Map selectedMembers={selectedMembers} />
+      <Map selectedMembers={membersWithUpdatedPositions} />
     </div>
   );
 }
