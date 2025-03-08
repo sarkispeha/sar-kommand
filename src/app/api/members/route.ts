@@ -3,28 +3,12 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const members = await db.member.findMany({
-      include: {
-        // Include the related MemberCoord records
-        coords: {
-          orderBy: {
-            id: "desc",
-          },
-          take: 1, // Only get the most recent coordinate
-        },
-      },
-    });
+    const members = await db.member.findMany();
 
     const formattedMembers = members.map((member) => ({
       name: `${member.id}`,
       team: "Team A",
       sarMemberId: member.id,
-      position: member.coords[0]
-        ? {
-            lng: member.coords[0].lng,
-            lat: member.coords[0].lat,
-          }
-        : null,
     }));
 
     return NextResponse.json(formattedMembers);
